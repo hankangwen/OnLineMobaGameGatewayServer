@@ -88,7 +88,7 @@ public static class Gateway
     /// </summary>
     /// <param name="ip">ip</param>
     /// <param name="port">端口号</param>
-    public static void ConnectServer(string ip, int port)
+    public static ServerState ConnectServer(string ip, int port)
     {
         ServerState serverState = new ServerState();
         gateway = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -98,9 +98,78 @@ public static class Gateway
         gateway.Listen(0);
         Console.WriteLine("网关服务器等待其他服务器连接");
         gateway.BeginAccept(AcceptServerCallback, serverState);
+        return serverState;
     }
 
+    /// <summary>
+    /// 接收其他服务端连接的回调
+    /// </summary>
+    /// <param name="ar"></param>
     private static void AcceptServerCallback(IAsyncResult ar)
+    {
+        //封装连接过来的服务端对象
+        ServerState serverState = (ServerState)ar.AsyncState;
+        Socket socket = gateway.EndAccept(ar);
+        Console.WriteLine("连接成功");
+        serverState.socket = socket;
+
+        serverStates.Add(socket, serverState);
+        //接收消息
+        ByteArray byteArray = serverState.readBuffer;
+        socket.BeginReceive(byteArray.bytes, byteArray.writeIndex, byteArray.Remain, SocketFlags.None, ReveiceServerCallback, serverState);
+    }
+
+    /// <summary>
+    /// 接收其他服务端发过来的消息
+    /// </summary>
+    /// <param name="ar"></param>
+    private static void ReveiceServerCallback(IAsyncResult ar)
+    {
+        ServerState serverState = (ServerState)ar.AsyncState;
+        int count = 0;
+        Socket server = serverState.socket;
+
+        ByteArray byteArray = serverState.readBuffer;
+        if (byteArray.Remain <= 0)
+        {
+            byteArray.MoveBytes();
+        }
+        if(byteArray.Remain <= 0)
+        {
+            Console.WriteLine("Reveive fail:数组长度不足");
+            //关闭服务端（如关闭战斗服的连接）
+            //Close();
+            return;
+        }
+        server.EndReceive(ar);
+
+        try
+        {
+            count = server.EndReceive(ar);
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine("Reveive fail:" + e.Message);
+
+            //关闭服务端（如关闭战斗服的连接）
+            //Close();
+            return;
+        }
+
+        if (count <= 0)
+        {
+            Console.WriteLine("Socket Close:" + serverState.socket.RemoteEndPoint.ToString());
+            //关闭服务端（如关闭战斗服的连接）
+            //Close();
+            return;
+        }
+
+        //处理接收过来的消息
+        byteArray.writeIndex += count;
+        OnReceiveData(serverState);
+    }
+
+    private static void OnReceiveData(ServerState serverState)
     {
 
     }

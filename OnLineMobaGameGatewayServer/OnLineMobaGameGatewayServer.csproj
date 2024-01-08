@@ -73,6 +73,7 @@
     <Compile Include="NetFramework\ClientState.cs" />
     <Compile Include="NetFramework\MsgBase.cs" />
     <Compile Include="NetFramework\Gateway.cs" />
+    <Compile Include="NetFramework\MyGuid.cs" />
     <Compile Include="NetFramework\ProtobufTool.cs" />
     <Compile Include="NetFramework\ServerState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
