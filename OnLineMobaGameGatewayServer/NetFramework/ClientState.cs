@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 /// </summary>
 public class ClientState
 {
+    public uint guid;
+
     /// <summary>
     /// 客户端socket
     /// </summary>
