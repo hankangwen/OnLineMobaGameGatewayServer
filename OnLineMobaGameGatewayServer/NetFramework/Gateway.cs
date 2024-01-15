@@ -219,7 +219,7 @@ public static class Gateway
 
             Array.Copy(bytes, byteArray.readIndex, sendBytes, 2, msgLength);
 
-            id2cs[guid].socket.Send(sendBytes, 0);
+            id2cs[guid].socket.Send(sendBytes, SocketFlags.None);
         }
         catch (SocketException e)
         {
