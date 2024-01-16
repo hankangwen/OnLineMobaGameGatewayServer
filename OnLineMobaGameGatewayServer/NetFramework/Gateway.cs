@@ -217,8 +217,8 @@ public static class Gateway
             sendBytes[0] = (byte)(msgLength % 256);
             sendBytes[1] = (byte)(msgLength / 256);
 
-            Array.Copy(bytes, byteArray.readIndex, sendBytes, 2, msgLength);
-
+            Console.WriteLine($"收到服务器serverType:{serverState.serverType}的消息，转发给客户端[{id2cs[guid].socket.RemoteEndPoint}]{guid}");
+            Array.Copy(bytes, byteArray.readIndex, sendBytes, 2, msgLength);           
             id2cs[guid].socket.Send(sendBytes, SocketFlags.None);
         }
         catch (SocketException e)
@@ -340,6 +340,7 @@ public static class Gateway
             sendBytes[4] = (byte)((state.guid >> 8) & 0xff);
             sendBytes[5] = (byte)((state.guid) & 0xff);
 
+            Console.WriteLine($"收到客户端[{state.socket.RemoteEndPoint}][{state.guid}]消息，转发给服务器{serverType}");
             Array.Copy(bytes, readBuffer.readIndex, sendBytes, 6, sendLength - 4);
             type2ss[serverType].socket.Send(sendBytes, 0, sendLength + 2, SocketFlags.None);
         }
