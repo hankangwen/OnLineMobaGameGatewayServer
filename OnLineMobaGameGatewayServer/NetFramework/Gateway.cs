@@ -89,7 +89,7 @@ public static class Gateway
                     Receive(s);
                 }
             }
-            CheckPing();
+            //CheckPing();
         }
     }
 
@@ -151,7 +151,7 @@ public static class Gateway
             //Close();
             return;
         }
-        server.EndReceive(ar);
+        //server.EndReceive(ar);
 
         try
         {
