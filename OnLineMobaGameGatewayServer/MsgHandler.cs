@@ -10,7 +10,7 @@ public class MsgHandler
 {
     public static void MsgPing(ClientState c, IExtensible msgBase)
     {
-        Console.WriteLine("MsgPing:" + c.socket.RemoteEndPoint);
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]MsgPing:" + c.socket.RemoteEndPoint);
         c.lastPingTime = Gateway.GetTimeStamp();
         MsgPong msgPong = new MsgPong();
         Gateway.Send(c, msgPong);

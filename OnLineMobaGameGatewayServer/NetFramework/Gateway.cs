@@ -75,7 +75,7 @@ public static class Gateway
 
         _receiveClientUdp = new UdpClient((IPEndPoint)listenfd.LocalEndPoint);
 
-        Console.WriteLine("服务器启动成功");
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]服务器启动成功");
         while (true)
         {
             sockets.Clear();
@@ -118,7 +118,7 @@ public static class Gateway
         IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, port);
         gateway.Bind(iPEndPoint);
         gateway.Listen(0);
-        Console.WriteLine("网关服务器等待其他服务器连接");
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]网关服务器等待其他服务器连接");
         gateway.BeginAccept(AcceptServerCallback, serverState);
         return serverState;
     }
@@ -132,7 +132,7 @@ public static class Gateway
         //封装连接过来的服务端对象
         ServerState serverState = (ServerState)ar.AsyncState;
         Socket socket = gateway.EndAccept(ar);
-        Console.WriteLine("连接成功");
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]连接成功");
         serverState.socket = socket;
 
         serverStates.Add(socket, serverState);
@@ -163,7 +163,7 @@ public static class Gateway
         }
         if(byteArray.Remain <= 0)
         {
-            Console.WriteLine("Reveive fail:数组长度不足");
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay}]Reveive fail:数组长度不足");
             //关闭服务端（如关闭战斗服的连接）
             //Close();
             return;
@@ -176,7 +176,7 @@ public static class Gateway
         }
         catch (SocketException e)
         {
-            Console.WriteLine("Reveive fail:" + e.Message);
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay}]Reveive fail:" + e.Message);
 
             //关闭服务端（如关闭战斗服的连接）
             //Close();
@@ -185,7 +185,7 @@ public static class Gateway
 
         if (count <= 0)
         {
-            Console.WriteLine("Socket Close:" + serverState.socket.RemoteEndPoint.ToString());
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay}]Socket Close:" + serverState.socket.RemoteEndPoint.ToString());
             //关闭服务端（如关闭战斗服的连接）
             //Close();
             return;
@@ -234,7 +234,7 @@ public static class Gateway
             sendBytes[0] = (byte)(msgLength % 256);
             sendBytes[1] = (byte)(msgLength / 256);
 
-            Console.WriteLine($"收到服务器serverType:{serverState.serverType}的消息，转发给客户端[{id2cs[guid].socket.RemoteEndPoint}]{guid}");
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay}]tcp收到服务器serverType:{serverState.serverType}的消息，转发给客户端[{id2cs[guid].socket.RemoteEndPoint}]{guid}");
             Array.Copy(bytes, byteArray.readIndex, sendBytes, 2, msgLength);           
             id2cs[guid].socket.Send(sendBytes, SocketFlags.None);
         }
@@ -359,7 +359,7 @@ public static class Gateway
             sendBytes[4] = (byte)((state.guid >> 8) & 0xff);
             sendBytes[5] = (byte)((state.guid) & 0xff);
 
-            Console.WriteLine($"收到客户端[{state.socket.RemoteEndPoint}][{state.guid}]消息，转发给服务器{serverType}");
+            Console.WriteLine($"[{DateTime.Now.TimeOfDay}]tcp收到客户端[{state.socket.RemoteEndPoint}][{state.guid}]消息，转发给服务器{serverType}");
             Array.Copy(bytes, readBuffer.readIndex, sendBytes, 6, sendLength - 4);
             type2ss[serverType].socket.Send(sendBytes, 0, sendLength + 2, SocketFlags.None);
         }
@@ -497,6 +497,7 @@ public static class Gateway
         sendBytes[2] = (byte)((state.guid >> 8) & 0xff);
         sendBytes[3] = (byte)(state.guid & 0xff);
 
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]udp收到客户端[{state.socket.RemoteEndPoint}][{state.guid}]消息，转发给服务器{serverType}");
         Array.Copy(receiveBuf, 1, sendBytes, 4, receiveBuf.Length - 1);
 
         _receiveServerUdp.Send(sendBytes, sendBytes.Length, serverIPEndPoint);
@@ -519,9 +520,10 @@ public static class Gateway
 
         IPEndPoint clientIpEndPoint = (IPEndPoint)id2cs[guid].socket.RemoteEndPoint;
 
-        Array.Copy(receiveBuf, 4, receiveBuf, 0, receiveBuf.Length - 4);
+        Console.WriteLine($"[{DateTime.Now.TimeOfDay}]udp收到服务器serverType:{state.serverType}的消息，转发给客户端[{clientIpEndPoint}]{guid}");
+        Array.Copy(receiveBuf, 4, receiveBuf, 0, receiveBuf.Length-4);
 
-        _receiveClientUdp.Send(receiveBuf, receiveBuf.Length, clientIpEndPoint);
+        _receiveClientUdp.Send(receiveBuf, receiveBuf.Length-4, clientIpEndPoint);
 
         _receiveServerUdp.BeginReceive(ReceiveUdpServerCallback, state);
     }
